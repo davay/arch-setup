@@ -6,7 +6,7 @@
     # Used in changed_when to avoid marking the install task as changed if the extension is already installed.
     # 2>/dev/null || echo "" handles the first run where gext isn't installed yet
     # (vars are evaluated before tasks run, so gext may not exist at this point)
-    installed_gnome_extensions: "{{ lookup('pipe', '~/.local/bin/gext list 2>/dev/null || echo \"\"') }}"
+    installed_gnome_extensions: '{{ lookup(''pipe'', ''~/.local/bin/gext list 2>/dev/null || echo ""'') }}'
     user: "{{ ansible_facts['user_id'] }}"
     base_dir: "/home/{{ user }}/Repos"
 
@@ -175,9 +175,11 @@
         msg: |
           ============================================================================================
 
-          Setup is complete. A reboot is recommended:
-          1. For GNOME extension changes to take effect, you must at least log out and log back in.
-          2. For Docker group membership changes to take effect, either reboot or run `newgrp docker`.
+          Setup is complete. A reboot is required:
+          1. For GNOME extension changes and [Caps] <-> [Esc] swap to take effect, log out and log back in.
+          2. For Docker group membership changes to take effect, a full reboot is required.
+
+          After rebooting, run: ./deploy.sh
 
           ============================================================================================
 

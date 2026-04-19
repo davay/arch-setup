@@ -8,3 +8,9 @@ ansible-galaxy collection install -r requirements.yml
   export ANSIBLE_BECOME_PASS="$PASS"
   ansible-playbook ./playbooks/init.yml
 )
+
+echo
+read -rp "Reboot now to apply group changes? [y/N] " REBOOT
+if [[ "$REBOOT" =~ ^[Yy]$ ]]; then
+  reboot
+fi
