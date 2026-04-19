@@ -3,8 +3,6 @@
   hosts: localhost
 
   vars:
-    user: "{{ ansible_facts['user_id'] }}"
-    base_dir: "/home/{{ user }}/Repos"
     ssh_public_key: "{{ lookup('community.general.onepassword', 'da-arch', field='public key', vault='Personal') }}"
 
   tasks:

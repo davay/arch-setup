@@ -7,8 +7,6 @@
     # 2>/dev/null || echo "" handles the first run where gext isn't installed yet
     # (vars are evaluated before tasks run, so gext may not exist at this point)
     installed_gnome_extensions: '{{ lookup(''pipe'', ''~/.local/bin/gext list 2>/dev/null || echo ""'') }}'
-    user: "{{ ansible_facts['user_id'] }}"
-    base_dir: "/home/{{ user }}/Repos"
 
   pre_tasks:
     # base-devel (gcc, make, etc.) is required by makepkg to build paru from AUR
