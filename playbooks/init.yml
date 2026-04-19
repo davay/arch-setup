@@ -7,6 +7,11 @@
     user: "{{ ansible_facts['user_id'] }}"
     base_dir: "/home/{{ user }}/Repos"
 
+  # pipx installs binaries to ~/.local/bin, which isn't in Ansible's default PATH.
+  # This adds it for the duration of this playbook run so gext can be found.
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/home/{{ ansible_facts['user_id'] }}/.local/bin"
+
   pre_tasks:
     # base-devel (gcc, make, etc.) is required by makepkg to build paru from AUR
     - name: Install base-devel
@@ -111,6 +116,13 @@
       community.general.pipx:
         name: gnome-extensions-cli
         state: present
+
+    # Permanently adds ~/.local/bin to PATH in your shell config so
+    # pipx-installed tools like gext are available in future terminal sessions.
+    - name: Add ~/.local/bin to PATH via pipx ensurepath
+      ansible.builtin.command:
+        cmd: pipx ensurepath
+      changed_when: false
 
     - name: Install GNOME extensions
       ansible.builtin.command:
