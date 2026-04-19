@@ -69,6 +69,7 @@
           - ghostty
           - neovim
           - docker
+          - docker-compose
           - zsh
           - nvidia-container-toolkit
           - python
