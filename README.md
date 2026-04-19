@@ -10,3 +10,5 @@ Remember to setup port forwarding on the router:
 - HTTPS: 443 -> 443
 
 SSH password auth has been disabled, use SSH keys.
+
+TODO: include directions for archinstall here too -- this assumes nvidia stuff is already installed, and we have gnome etc
