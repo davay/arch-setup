@@ -157,7 +157,6 @@
       become: true
       loop:
         - docker.service
-        - sshd.service
 
     - name: Change user shell to Zsh
       ansible.builtin.user:
