@@ -17,11 +17,11 @@
 
     - name: Create DuckDNS .env file
       template:
-        src: "{{ base_dir }}/arch-setup/templates/docker/duckdns/.env.j2"
-        dest: "{{ base_dir }}/arch-setup/templates/docker/duckdns/.env"
+        src: "{{ base_dir }}/arch-setup/templates/containers/duckdns/.env.j2"
+        dest: "{{ base_dir }}/arch-setup/templates/containers/duckdns/.env"
 
     - name: Deploy DuckDNS
       community.docker.docker_compose_v2:
-        project_src: "{{ base_dir }}/arch-setup/templates/docker/duckdns"
+        project_src: "{{ base_dir }}/arch-setup/templates/containers/duckdns"
         state: present
       become: true
