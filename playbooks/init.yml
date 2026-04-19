@@ -9,7 +9,7 @@
 
   pre_tasks:
     # base-devel (gcc, make, etc.) is required by makepkg to build paru from AUR
-    - name: Install base-devel and git
+    - name: Install base-devel
       community.general.pacman:
         name:
           - base-devel
@@ -28,7 +28,7 @@
       ansible.builtin.file:
         path: /home/aur_builder/.ansible/tmp
         state: directory
-        mode: '0700'
+        mode: "0700"
         owner: aur_builder
       become: true
 
@@ -69,7 +69,7 @@
           - zsh
           - nvidia-container-toolkit
           - python
-          - python-pip
+          - python-pipx
         state: present
       become: true
 
@@ -104,10 +104,13 @@
         append: yes
       become: true
 
+    # Arch enforces PEP 668, blocking system-wide and --user pip installs.
+    # pipx is the recommended alternative for Python applications on Arch.
+    # (nobara uses pip --user, which Fedora's looser PEP 668 enforcement allows)
     - name: Install gnome-extensions-cli
-      ansible.builtin.pip:
+      community.general.pipx:
         name: gnome-extensions-cli
-        extra_args: --user --upgrade
+        state: present
 
     - name: Install GNOME extensions
       ansible.builtin.command:
@@ -126,7 +129,7 @@
       ansible.builtin.file:
         path: "/home/{{ user }}/.config/autostart"
         state: directory
-        mode: '0755'
+        mode: "0755"
 
     - name: Autostart 1Password
       ansible.builtin.copy:
@@ -160,17 +163,17 @@
     - name: Display final message
       vars:
         msg: |
-             ============================================================================================
+          ============================================================================================
 
-             Setup is complete. A reboot is recommended:
-             1. For GNOME extension changes to take effect, you must at least log out and log back in.
-             2. For Docker group membership changes to take effect, either reboot or run `newgrp docker`.
+          Setup is complete. A reboot is recommended:
+          1. For GNOME extension changes to take effect, you must at least log out and log back in.
+          2. For Docker group membership changes to take effect, either reboot or run `newgrp docker`.
 
-             ============================================================================================
+          ============================================================================================
 
-             NVIDIA Container Toolkit test results:
-             {{ nvidia_test.stdout if nvidia_test.stdout is defined else 'Test failed' }}
+          NVIDIA Container Toolkit test results:
+          {{ nvidia_test.stdout if nvidia_test.stdout is defined else 'Test failed' }}
 
-             ============================================================================================
+          ============================================================================================
       ansible.builtin.debug:
         msg: "{{ msg.split('\n') }}"
