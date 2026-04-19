@@ -4,7 +4,7 @@
 
   vars:
     installed_gnome_extensions: "{{ lookup('pipe', 'gext list') }}"
-    user: "{{ ansible_user_id }}"
+    user: "{{ ansible_facts['user_id'] }}"
     base_dir: "/home/{{ user }}/Repos"
 
   pre_tasks:
@@ -22,6 +22,14 @@
       ansible.builtin.user:
         name: aur_builder
         create_home: yes
+      become: true
+
+    - name: Create aur_builder Ansible tmp directory
+      ansible.builtin.file:
+        path: /home/aur_builder/.ansible/tmp
+        state: directory
+        mode: '0700'
+        owner: aur_builder
       become: true
 
     - name: Allow aur_builder passwordless sudo for pacman
@@ -60,6 +68,8 @@
           - docker
           - zsh
           - nvidia-container-toolkit
+          - python
+          - python-pip
         state: present
       become: true
 

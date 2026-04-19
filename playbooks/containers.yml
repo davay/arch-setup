@@ -3,7 +3,7 @@
   hosts: localhost
 
   vars:
-    user: "{{ ansible_user_id }}"
+    user: "{{ ansible_facts['user_id'] }}"
     base_dir: "/home/{{ user }}/Repos"
     duckdns_token: "{{ lookup('community.general.onepassword', 'Duck DNS Token', field='token', vault='Personal') }}"
 
