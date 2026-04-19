@@ -68,6 +68,7 @@
           - neovim
           - docker
           - docker-compose
+          - docker-buildx
           - zsh
           - nvidia-container-toolkit
           - python
