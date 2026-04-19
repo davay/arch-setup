@@ -3,14 +3,12 @@
   hosts: localhost
 
   vars:
-    installed_gnome_extensions: "{{ lookup('pipe', 'gext list') }}"
+    # Used in changed_when to avoid marking the install task as changed if the extension is already installed.
+    # 2>/dev/null || echo "" handles the first run where gext isn't installed yet
+    # (vars are evaluated before tasks run, so gext may not exist at this point)
+    installed_gnome_extensions: "{{ lookup('pipe', '~/.local/bin/gext list 2>/dev/null || echo \"\"') }}"
     user: "{{ ansible_facts['user_id'] }}"
     base_dir: "/home/{{ user }}/Repos"
-
-  # pipx installs binaries to ~/.local/bin, which isn't in Ansible's default PATH.
-  # This adds it for the duration of this playbook run so gext can be found.
-  environment:
-    PATH: "{{ ansible_env.PATH }}:/home/{{ ansible_facts['user_id'] }}/.local/bin"
 
   pre_tasks:
     # base-devel (gcc, make, etc.) is required by makepkg to build paru from AUR
@@ -126,7 +124,7 @@
 
     - name: Install GNOME extensions
       ansible.builtin.command:
-        cmd: gext --filesystem install "{{ item }}"
+        cmd: ~/.local/bin/gext --filesystem install "{{ item }}"
       loop:
         - gsconnect@andyholmes.github.io
       changed_when: item not in installed_gnome_extensions
