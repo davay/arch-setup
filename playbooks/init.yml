@@ -69,6 +69,7 @@
           - docker
           - docker-compose
           - docker-buildx
+          - caddy
           - zsh
           - nvidia-container-toolkit
           - python

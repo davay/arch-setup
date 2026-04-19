@@ -1,0 +1,25 @@
+---
+- name: Setup Caddy
+  hosts: localhost
+
+  tasks:
+    - name: Copy Caddyfile
+      ansible.builtin.copy:
+        src: "{{ base_dir }}/arch-setup/templates/Caddyfile"
+        dest: /etc/caddy/Caddyfile
+      become: true
+      notify: Reload caddy
+
+    - name: Enable and start Caddy service
+      ansible.builtin.systemd:
+        name: caddy
+        state: started
+        enabled: true
+      become: true
+
+  handlers:
+    - name: Reload caddy
+      ansible.builtin.systemd:
+        name: caddy
+        state: reloaded
+      become: true
