@@ -1,0 +1,27 @@
+---
+- name: Start Docker containers
+  hosts: localhost
+
+  vars:
+    user: "{{ ansible_user_id }}"
+    base_dir: "/home/{{ user }}/Repos"
+    duckdns_token: "{{ lookup('community.general.onepassword', 'Duck DNS Token', field='token', vault='Personal') }}"
+
+  tasks:
+    - name: Ensure docker service is running
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+      become: true
+
+    - name: Create DuckDNS .env file
+      template:
+        src: "{{ base_dir }}/arch-setup/templates/docker/duckdns/.env.j2"
+        dest: "{{ base_dir }}/arch-setup/templates/docker/duckdns/.env"
+
+    - name: Deploy DuckDNS
+      community.docker.docker_compose_v2:
+        project_src: "{{ base_dir }}/arch-setup/templates/docker/duckdns"
+        state: present
+      become: true
