@@ -16,17 +16,38 @@
         state: present
       become: true
 
+    # AUR helpers cannot run as root, so we create a dedicated aur_builder user
+    # with passwordless sudo for pacman to allow makepkg to work in Ansible
+    - name: Create aur_builder user
+      ansible.builtin.user:
+        name: aur_builder
+        create_home: yes
+      become: true
+
+    - name: Allow aur_builder passwordless sudo for pacman
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers.d/aur_builder
+        state: present
+        line: "aur_builder ALL=(ALL) NOPASSWD: /usr/bin/pacman"
+        validate: /usr/sbin/visudo -cf %s
+        create: yes
+      become: true
+
     - name: Clone paru AUR helper
       ansible.builtin.git:
         repo: https://aur.archlinux.org/paru.git
         dest: /tmp/paru
         depth: 1
+      become: true
+      become_user: aur_builder
 
     - name: Build and install paru
       ansible.builtin.command:
         cmd: makepkg -si --noconfirm
         chdir: /tmp/paru
         creates: /usr/bin/paru
+      become: true
+      become_user: aur_builder
 
   tasks:
     - name: Install pacman packages
@@ -43,12 +64,14 @@
       become: true
 
     - name: Install AUR packages
-      community.general.aur:
+      kewlfft.aur.aur:
         name:
           - 1password
           - zen-browser-bin
         use: paru
         state: present
+      become: true
+      become_user: aur_builder
 
     - name: Install Oh-My-Zsh
       ansible.builtin.git:
