@@ -1,5 +1,8 @@
 api.devinl.im {
-    handle /da-band/* {
+    # Matches both /da-band and /da-band/ so both work without redirecting (more for stylistic reasons, really)
+    # @da-band is a named matcher — Caddy's way of defining a reusable condition.
+    @da-band path /da-band /da-band/*
+    handle @da-band {
         uri strip_prefix /da-band
         reverse_proxy localhost:8000
     }
