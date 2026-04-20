@@ -1,5 +1,6 @@
 api.devinl.im {
     handle /da-band/* {
+        uri strip_prefix /da-band
         reverse_proxy localhost:8000
     }
 }
