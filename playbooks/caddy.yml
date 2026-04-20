@@ -7,6 +7,7 @@
       ansible.builtin.copy:
         src: "{{ base_dir }}/arch-setup/templates/Caddyfile"
         dest: /etc/caddy/Caddyfile
+        mode: "0644"
       become: true
       notify: Reload caddy
 
@@ -18,6 +19,7 @@
       become: true
 
   handlers:
+    # Redundant on first run; but useful for subsequent runs
     - name: Reload caddy
       ansible.builtin.systemd:
         name: caddy
