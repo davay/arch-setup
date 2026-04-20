@@ -1,0 +1,45 @@
+---
+- name: Setup ddclient
+  hosts: localhost
+
+  vars:
+    aws_access_key_id: "{{ lookup('community.general.onepassword', 'Route53 - da-arch', field='access key id', vault='Personal') }}"
+    aws_secret_access_key: "{{ lookup('community.general.onepassword', 'Route53 - da-arch', field='secret access key', vault='Personal') }}"
+
+  tasks:
+    - name: Copy ddclient config
+      ansible.builtin.template:
+        src: "{{ base_dir }}/arch-setup/templates/ddclient.conf.j2"
+        dest: /etc/ddclient.conf
+        mode: "0600"
+      become: true
+      notify: Restart ddclient
+
+    # Ensures the A record exists in Route53 on first start.
+    # ddclient will keep it updated going forward.
+    - name: Upsert Route53 A record to current IP
+      ansible.builtin.shell: |
+        set -euo pipefail
+        IP=$(curl -s checkip.amazonaws.com)
+        ZONE_ID=$(aws route53 list-hosted-zones --query "HostedZones[?Name=='devinl.im.'].Id" --output text | cut -d/ -f3)
+        aws route53 change-resource-record-sets \
+          --hosted-zone-id "$ZONE_ID" \
+          --change-batch "{\"Changes\":[{\"Action\":\"UPSERT\",\"ResourceRecordSet\":{\"Name\":\"api.devinl.im\",\"Type\":\"A\",\"TTL\":300,\"ResourceRecords\":[{\"Value\":\"$IP\"}]}}]}"
+      environment:
+        AWS_ACCESS_KEY_ID: "{{ aws_access_key_id }}"
+        AWS_SECRET_ACCESS_KEY: "{{ aws_secret_access_key }}"
+      changed_when: false
+
+    - name: Enable and start ddclient service
+      ansible.builtin.systemd:
+        name: ddclient
+        state: started
+        enabled: true
+      become: true
+
+  handlers:
+    - name: Restart ddclient
+      ansible.builtin.systemd:
+        name: ddclient
+        state: restarted
+      become: true
