@@ -70,7 +70,7 @@
           - docker-compose
           - docker-buildx
           - caddy
-          - ddclient
+          # - ddclient  # route53 protocol unsupported; ddclient lacks active maintainers (PR open for >1yr)
           - aws-cli
           - zsh
           - nvidia-container-toolkit

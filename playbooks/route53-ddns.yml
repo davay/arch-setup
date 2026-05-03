@@ -1,0 +1,90 @@
+---
+# Replaces ddclient for Route53 DDNS updates.
+# ddclient's route53 protocol PR has been unreviewed for over a year due to
+# lack of active maintainers, so we manage updates directly via AWS CLI.
+- name: Setup Route53 DDNS
+  hosts: localhost
+
+  vars:
+    aws_access_key_id: "{{ lookup('community.general.onepassword', 'Route53 - da-arch', field='access key id', vault='Personal') }}"
+    aws_secret_access_key: "{{ lookup('community.general.onepassword', 'Route53 - da-arch', field='secret access key', vault='Personal') }}"
+
+  tasks:
+    - name: Create cache directory
+      ansible.builtin.file:
+        path: /var/cache/route53-ddns
+        state: directory
+        mode: "0755"
+      become: true
+
+    - name: Deploy update script
+      ansible.builtin.copy:
+        src: "{{ base_dir }}/arch-setup/templates/route53-ddns.sh"
+        dest: /usr/local/bin/route53-ddns.sh
+        mode: "0755"
+      become: true
+
+    - name: Deploy credentials env file
+      ansible.builtin.template:
+        src: "{{ base_dir }}/arch-setup/templates/route53-ddns.env.j2"
+        dest: /etc/route53-ddns.env
+        mode: "0600"
+        owner: root
+        group: root
+      become: true
+
+    - name: Deploy systemd service
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/route53-ddns.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Update Route53 A record with current public IP
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=oneshot
+          EnvironmentFile=/etc/route53-ddns.env
+          ExecStart=/usr/local/bin/route53-ddns.sh
+      become: true
+      notify: Reload systemd
+
+    - name: Deploy systemd timer
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/route53-ddns.timer
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Run route53-ddns every 5 minutes
+
+          [Timer]
+          OnBootSec=1min
+          OnUnitActiveSec=5min
+
+          [Install]
+          WantedBy=timers.target
+      become: true
+      notify: Reload systemd
+
+    - name: Enable and start timer
+      ansible.builtin.systemd:
+        name: route53-ddns.timer
+        state: started
+        enabled: true
+        daemon_reload: true
+      become: true
+
+    # Run once immediately so the record is correct without waiting 5 minutes.
+    - name: Run update now
+      ansible.builtin.command: /usr/local/bin/route53-ddns.sh
+      environment:
+        AWS_ACCESS_KEY_ID: "{{ aws_access_key_id }}"
+        AWS_SECRET_ACCESS_KEY: "{{ aws_secret_access_key }}"
+      changed_when: false
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+      become: true
