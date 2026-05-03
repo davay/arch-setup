@@ -10,7 +10,7 @@
     - name: Copy ddclient config
       ansible.builtin.template:
         src: "{{ base_dir }}/arch-setup/templates/ddclient.conf.j2"
-        dest: /etc/ddclient.conf
+        dest: /etc/ddclient/ddclient.conf
         mode: "0600"
       become: true
       notify: Restart ddclient
